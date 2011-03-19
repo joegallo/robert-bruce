@@ -3,8 +3,8 @@
 Robert Bruce provides an easy way to execute a function and allow 
 failures to be automatically retried.  It's named after 
 [Robert the Bruce](http://en.wikipedia.org/wiki/Robert_the_Bruce),
-whose determination was inspired by the sight a spider trying many
-time (and failing) to build a web.
+whose determination was inspired by the sight a spider trying (and
+failing) many times to build a web.
 
 Add this to your project.clj :dependencies list:
 
@@ -14,7 +14,7 @@ Add this to your project.clj :dependencies list:
 
     (use '[robert.bruce :only [try-try-again]])
 
-    ;; arguments are like trampoline, if you want to default options
+    ;; arguments are like trampoline, if you want the default options
     (try-try-again some-fn)
     (try-try-again some-fn arg1 arg2)
     (try-try-again #(some-fn arg1 arg2))
@@ -22,7 +22,7 @@ Add this to your project.clj :dependencies list:
     ;; but with the addition of a first options arg, if you don't
     (try-try-again {:sleep 5000 :tries 100} #(some-fn arg1 arg2))
     (try-try-again {:sleep nil :tries 100} #(some-fn arg1 arg2))
-    (try-try-again {:sleep 5000 :tries 100} #(some-fn arg1 arg2))
+    (try-try-again {:decay :exponential :tries 100} #(some-fn arg1 arg2))
 
     (try-try-again {;; all options are optional
 
@@ -37,7 +37,7 @@ Add this to your project.clj :dependencies list:
                     ;; default is 5
                     :tries 100
                     
-                    ;; if you want to your sleep amount to change over
+                    ;; if you want your sleep amount to change over
                     ;; time, you can provide a decay function:
                     ;; a number - your sleep will be multiplied by it
                     ;; a function - your sleep will passed into it
@@ -46,7 +46,7 @@ Add this to your project.clj :dependencies list:
                     ;; default is identity
                     :decay :exponential
 
-                    ;; if you want to only rety when particular
+                    ;; if you want to only retry when particular
                     ;; exceptions are thrown, you can add a :catch
                     ;; clause.  it works with either a single type
                     ;; or a collection.  
