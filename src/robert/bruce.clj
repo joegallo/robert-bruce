@@ -55,14 +55,16 @@ number as a result"
          (or (= :unlimited (keyword tries))
              (pos? tries)))))
 
-(defn update-tries [options]
+(defn update-tries
   "internal function that updates the number of tries that remain"
+  [options]
   (update-in options [:tries] (if (= :unlimited (:tries options))
                                 identity
                                 dec)))
 
-(defn update-sleep [options]
+(defn update-sleep
   "internal function that updates sleep with the decay function"
+  [options]
   (update-in options [:sleep] (if (:sleep options)
                                 (decay options)
                                 identity)))
