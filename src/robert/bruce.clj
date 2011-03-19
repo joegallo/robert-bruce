@@ -43,7 +43,10 @@ number as a result"
                          (map? (first args)))
                   (first args)
                   {})
-        options (merge default-options options)
+        options (merge default-options
+                       (select-keys (meta fn)
+                                    (keys default-options))
+                       options)
         args (rest (drop-while (complement fn?) args))]
     [options fn args]))
 

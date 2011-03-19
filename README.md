@@ -54,6 +54,9 @@ Add this to your project.clj :dependencies list:
                     :catch [java.io.IOException java.sql.SQLException]}
                    #(some-fn arg1 arg2))
 
+    ;; you can also use metadata on the function itself
+    (try-try-again ^{:decay :exponential :tries 100} #(some-fn arg1 arg2))
+
 ## License
 
 Copyright (C) 2011 Joe Gallo
