@@ -66,9 +66,10 @@
 
 (deftest test-update-tries
   (testing "tries should decrease by 1, unless it is :unlimited"
-    (is (= {:tries 0} (update-tries {:tries 1})))
-    (is (= {:tries 1} (update-tries {:tries 2})))
-    (is (= {:tries :unlimited} (update-tries {:tries :unlimited})))))
+    (is (= {:tries 0 :try 2} (update-tries {:tries 1 :try 1})))
+    (is (= {:tries 1 :try 2} (update-tries {:tries 2 :try 1})))
+    (is (= {:tries :unlimited :try 11}
+           (update-tries {:tries :unlimited :try 10})))))
 
 (deftest test-update-sleep
   (testing "sleep should update with the decay function..."
@@ -99,3 +100,16 @@
                                   #(do (swap! times inc)
                                        (/ 1 0)))))
       (is (= 10 @times)))))
+
+(deftest test-try-first-try-and-last-try
+  (testing "that we keep tally of tries nicely"
+    (let [report (atom [])]
+      (is (thrown? ArithmeticException
+                   (try-try-again {:sleep nil
+                                   :tries 3}
+                                  #(do (swap! report conj
+                                              [*try* *first-try* *last-try*])
+                                       (/ 1 0)))))
+      (is (= [1 2 3] (map first @report)))
+      (is (= [true false false] (map second @report)))
+      (is (= [false false true] (map last @report))))))

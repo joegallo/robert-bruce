@@ -4,7 +4,8 @@
 (def default-options {:sleep 10000
                       :tries 5
                       :decay identity
-                      :catch Exception})
+                      :catch Exception
+                      :try 1}) ;; try is not overrideable
 
 (defn double [x]
   (* 2 x))
@@ -47,6 +48,7 @@ number as a result"
                        (select-keys (meta fn)
                                     (keys default-options))
                        options)
+        options (assoc options :try 1)
         args (rest (drop-while (complement fn?) args))]
     [options fn args]))
 
@@ -61,9 +63,11 @@ number as a result"
 (defn update-tries
   "internal function that updates the number of tries that remain"
   [options]
-  (update-in options [:tries] (if (= :unlimited (:tries options))
-                                identity
-                                dec)))
+  (-> options
+      (update-in [:tries] (if (= :unlimited (:tries options))
+                            identity
+                            dec))
+      (update-in [:try] inc)))
 
 (defn update-sleep
   "internal function that updates sleep with the decay function"
@@ -72,11 +76,18 @@ number as a result"
                                 (decay options)
                                 identity)))
 
+(def *first-try* nil)
+(def *last-try* nil)
+(def *try* nil)
+
 (defn retry
   "internal function that will actually retry with the specified options"
   [options f]
   (try
-    (f)
+    (binding [*try* (:try options)
+              *first-try* (= 1 (:try options))
+              *last-try* (= 1 (:tries options))]
+      (f))
     (catch Throwable t
       (let [options (update-tries options)]
         (if (try-again? options t)
