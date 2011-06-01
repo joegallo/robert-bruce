@@ -6,7 +6,8 @@
                       :tries 5
                       :decay identity
                       :catch Exception
-                      :try 1}) ;; try is not overrideable
+                      :try 1  ;; try is not overrideable
+                      :error-hook (constantly nil)})
 
 (defn double [x]
   (* 2 x))
@@ -85,25 +86,29 @@ number as a result"
 (defn retry
   "internal function that will actually retry with the specified options"
   [options f]
-  (try
-    (binding [*try* (:try options)
-              *first-try* (= 1 (:try options))
-              *last-try* (= 1 (:tries options))
-              *error* (::error options)]
+  (binding [*try* (:try options)
+            *first-try* (= 1 (:try options))
+            *last-try* (= 1 (:tries options))
+            *error* (::error options)]
+    (try
       (let [ret (f)]
         (if (instance? IObj ret)
           (vary-meta ret assoc :tries *try*)
-          ret)))
-    (catch Throwable t
-      (let [options (-> options
-                        update-tries
-                        (assoc ::error t))]
-        (if (try-again? options t)
-          (do
-            (when-let [sleep (:sleep options)]
-              (Thread/sleep (long sleep)))
-            #(retry (update-sleep options) f))
-          (throw t))))))
+          ret))
+      (catch Throwable t
+        (let [options (-> options
+                          update-tries
+                          (assoc ::error t))
+              continue ((:error-hook options) t)]
+          (if (or (true? continue)
+                  (and (not (false? continue))
+                       (try-again? options t)))
+            (do
+              (when-let [sleep (:sleep options)]
+                (Thread/sleep (long sleep)))
+              #(retry (update-sleep options) f))
+            (throw t)))))))
+
 
 (defn try-try-again
   "if at first you don't succeed, intelligent retry trampolining"

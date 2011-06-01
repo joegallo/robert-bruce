@@ -138,3 +138,43 @@
                                                   (let [err (Exception.)]
                                                     (reset! e err)
                                                     (throw err)))))))))
+
+(deftest test-error-hook
+  (testing "is called after each failure"
+    (let [tries (atom [])
+          record-tries (fn [_] (swap! tries conj *try*))]
+      (is (thrown? Exception
+                   (try-try-again {:sleep nil
+                                   :error-hook record-tries}
+                                  #(throw (Exception.)))))
+      (is (= [1 2 3 4 5] @tries))))
+  (testing "receives the thrown exception"
+    (let [e1 (Exception.)
+          e2 (atom nil)]
+      (is (thrown? Exception
+                   (try-try-again {:sleep nil
+                                   :tries 1
+                                   :error-hook #(reset! e2 %)}
+                                  #(throw e1))))
+      (is (= e1 @e2))))
+  (testing "can cancel retries by returning false"
+    (let [tries (atom [])]
+      (is (thrown? Exception
+                   (try-try-again {:sleep nil
+                                   :tries 10
+                                   :error-hook (constantly false)}
+                                  #(do
+                                     (swap! tries conj *try*)
+                                     (throw (Exception.))))))
+      (is (= [1] @tries))))
+  (testing "can force retries by returning true"
+    (let [tries (atom [])]
+      (is (thrown? Exception
+                   (try-try-again {:sleep nil
+                                   :tries 1
+                                   :error-hook (fn [e]
+                                                 (not (= (count @tries) 10)))}
+                                  #(do
+                                     (swap! tries conj *try*)
+                                     (throw (Exception.))))))
+      (is (= (range 1 11) @tries)))))
