@@ -1,5 +1,6 @@
 (ns robert.bruce
-  (:refer-clojure :exclude [double]))
+  (:refer-clojure :exclude [double])
+  (:import (clojure.lang IObj)))
 
 (def default-options {:sleep 10000
                       :tries 5
@@ -87,7 +88,10 @@ number as a result"
     (binding [*try* (:try options)
               *first-try* (= 1 (:try options))
               *last-try* (= 1 (:tries options))]
-      (f))
+      (let [ret (f)]
+        (if (instance? IObj ret)
+          (vary-meta ret assoc :tries *try*)
+          ret)))
     (catch Throwable t
       (let [options (update-tries options)]
         (if (try-again? options t)

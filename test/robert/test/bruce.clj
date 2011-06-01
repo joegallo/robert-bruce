@@ -32,17 +32,17 @@
 (deftest test-parse
   (testing "parse handles a variety of arguments correctly"
     (is (= [default-options identity []]
-             (parse [identity])))
+           (parse [identity])))
     (is (= [default-options identity ["a" "b"]]
-             (parse [identity "a" "b"])))
+           (parse [identity "a" "b"])))
     (is (= [(assoc default-options :tries 100) identity []]
-             (parse [{:tries 100} identity])))
+           (parse [{:tries 100} identity])))
     (is (= [(assoc default-options :tries 100) identity ["a" "b"]]
-             (parse [{:tries 100} identity "a" "b"]))))
+           (parse [{:tries 100} identity "a" "b"]))))
   (testing "parse merges your options with the default options"
     (let [options {:a 1 :b 2 :sleep nil :tries 10}]
       (is (= [(merge default-options options) identity []]
-               (parse [options identity])))))
+             (parse [options identity])))))
   (testing "and with the metadata on the function you pass in"
     (let [options {:a 1 :b 2 :sleep nil :tries 10}]
       (is (= (merge default-options {:decay :foo} options)
@@ -113,3 +113,17 @@
       (is (= [1 2 3] (map first @report)))
       (is (= [true false false] (map second @report)))
       (is (= [false false true] (map last @report))))))
+
+(deftest test-meta-tries
+  (testing "record the number of tries in the metadata"
+    (is (= 1 (:tries (meta (try-try-again (fn [] [1]))))))
+    (is (= 2 (:tries (meta (try-try-again (fn [] (if *first-try*
+                                                  (throw (Exception.))
+                                                  [1]))))))))
+  (testing "preserving any supplied metadata"
+    (is (= {:tries 2 :foo :bar} (meta (try-try-again (fn []
+                                                       (if *first-try*
+                                                         (throw (Exception.))
+                                                         ^{:foo :bar} [1])))))))
+  (testing "except when we can't"
+    (is (nil? (meta (try-try-again (fn [] "foo")))))))
