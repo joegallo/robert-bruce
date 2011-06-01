@@ -127,3 +127,14 @@
                                                          ^{:foo :bar} [1])))))))
   (testing "except when we can't"
     (is (nil? (meta (try-try-again (fn [] "foo")))))))
+
+
+(deftest test-error-is-bound-on-next-run
+  (testing "record the previous error as *error* during the next run"
+    (is (thrown? Exception
+                 (let [e (atom nil)]
+                   (try-try-again {:sleep nil} #(do
+                                                  (is (= @e *error*))
+                                                  (let [err (Exception.)]
+                                                    (reset! e err)
+                                                    (throw err)))))))))

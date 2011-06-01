@@ -80,6 +80,7 @@ number as a result"
 (def *first-try* nil)
 (def *last-try* nil)
 (def *try* nil)
+(def *error* nil)
 
 (defn retry
   "internal function that will actually retry with the specified options"
@@ -87,13 +88,16 @@ number as a result"
   (try
     (binding [*try* (:try options)
               *first-try* (= 1 (:try options))
-              *last-try* (= 1 (:tries options))]
+              *last-try* (= 1 (:tries options))
+              *error* (::error options)]
       (let [ret (f)]
         (if (instance? IObj ret)
           (vary-meta ret assoc :tries *try*)
           ret)))
     (catch Throwable t
-      (let [options (update-tries options)]
+      (let [options (-> options
+                        update-tries
+                        (assoc ::error t))]
         (if (try-again? options t)
           (do
             (when-let [sleep (:sleep options)]
