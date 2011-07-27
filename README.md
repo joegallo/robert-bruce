@@ -51,8 +51,25 @@ Add this to your project.clj :dependencies list:
                     ;; clause.  it works with either a single type
                     ;; or a collection.  
                     ;; default is Exception
-                    :catch [java.io.IOException java.sql.SQLException]}
+                    :catch [java.io.IOException java.sql.SQLException]
+                    
+                    ;; if you would like a function to be called on
+                    ;; each failure (for instance, logging each failed
+                    ;; attempt), you can specify an error-hook.
+                    ;; The error that occurred is passed into the
+                    ;; error-hook function as an argument.
+                    ;; The error-hook method can also force a
+                    ;; short-circuit failure by returning false, or
+                    ;; force an additional retry by returning true.
+                    :error-hook (fn [e] (println "I got an error:" e))}
                    #(some-fn arg1 arg2))
+
+    ;; In addition, four dynamic variables are bound in both the
+    ;; passed in and error-hook functions:
+    ;; *first-try* - true if this is the first try
+    ;; *last-try* - true if this is the last try
+    ;; *try* - the current try number (starting at 1)
+    ;; *error* - the last error that occurred
 
     ;; you can also use metadata on the function itself
     (try-try-again ^{:decay :exponential :tries 100} #(some-fn arg1 arg2))
