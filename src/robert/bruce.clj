@@ -78,10 +78,10 @@ number as a result"
                                 (decay options)
                                 identity)))
 
-(def *first-try* nil)
-(def *last-try* nil)
-(def *try* nil)
-(def *error* nil)
+(def ^{:dynamic true} *first-try* nil)
+(def ^{:dynamic true} *last-try* nil)
+(def ^{:dynamic true} *try* nil)
+(def ^{:dynamic true} *error* nil)
 
 (defn retry
   "internal function that will actually retry with the specified options"
