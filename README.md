@@ -3,7 +3,7 @@
 Robert Bruce provides an easy way to execute a function and allow 
 failures to be automatically retried.  It's named after 
 [Robert the Bruce](http://en.wikipedia.org/wiki/Robert_the_Bruce),
-whose determination was inspired by the sight a spider trying (and
+whose determination was inspired by the sight of a spider trying (and
 failing) many times to build a web.
 
 Add this to your project.clj :dependencies list:
