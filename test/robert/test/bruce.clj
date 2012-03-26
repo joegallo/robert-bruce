@@ -100,7 +100,7 @@
                           :tries 1)
                         #(/ 1 0))))))
 
-(deftest test-try-try-again
+(deftest test-try-try-again-exception
   (testing "ten tries to do the job"
     (let [times (atom 0)]
       (is (thrown? ArithmeticException
@@ -109,6 +109,53 @@
                                   #(do (swap! times inc)
                                        (/ 1 0)))))
       (is (= 10 @times)))))
+
+(deftest test-try-try-again-return?
+  (testing "ten tries to do the job, nil, identity"
+    (let [times (atom 0)]
+      (is (= nil (try-try-again {:sleep nil
+                                 :tries 10
+                                 :return? identity}
+                                #(do (swap! times inc)
+                                     nil))))
+      (is (= 10 @times))))
+  (testing "ten tries to do the job, nil, truthy?"
+    (let [times (atom 0)]
+      (is (= nil (try-try-again {:sleep nil
+                                 :tries 10
+                                 :return? :truthy?}
+                                #(do (swap! times inc)
+                                     nil))))
+      (is (= 10 @times))))
+  (testing "ten tries to do the job, nil, falsey?"
+    (let [times (atom 0)]
+      (is (= nil (try-try-again {:sleep nil
+                                 :tries 10
+                                 :return? :falsey?}
+                                #(do (swap! times inc)
+                                     nil))))
+      (is (= 1 @times))))
+  (testing "ten tries to do the job, [], vector?"
+    (let [times (atom 0)]
+      (is (= [1 2 3] (try-try-again {:sleep nil
+                                     :tries 10
+                                     :return? vector?}
+                                    #(do (swap! times inc)
+                                         (if (< @times 3)
+                                           nil
+                                           [1 2 3])))))
+      (is (= 3 @times))))
+  (testing "bad :return?"
+    (let [times (atom 0)]
+      (is (thrown? IllegalArgumentException
+                   (try-try-again {:sleep nil
+                                   :tries 10
+                                   :return? 3}
+                                  #(do (swap! times inc)
+                                       (if (< @times 3)
+                                         nil
+                                         [1 2 3])))))
+      (is (= 0 @times)))))
 
 (deftest test-try-first-try-and-last-try
   (testing "that we keep tally of tries nicely"
