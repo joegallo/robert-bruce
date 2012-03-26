@@ -12,7 +12,6 @@
                       :decay identity
                       :return? always
                       :catch Exception
-                      :try 1  ;; try is not overrideable
                       :error-hook (constantly nil)})
 
 (defn double
@@ -80,6 +79,10 @@
       (throw (IllegalArgumentException.
               (str "Unrecognized :return? option: " d))))))
 
+(defn init-options
+  [options]
+  (-> options (assoc :try 1) resolve-decay resolve-return))
+
 (defn parse
   "internal function that parses arguments into usable bits"
   [args]
@@ -93,7 +96,6 @@
                        (select-keys (meta fn)
                                     (keys default-options))
                        options)
-        options (assoc options :try 1)
         args (rest (drop-while (complement fn?) args))]
     [options fn args]))
 
