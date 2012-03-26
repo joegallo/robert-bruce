@@ -9,13 +9,19 @@
                       :try 1  ;; try is not overrideable
                       :error-hook (constantly nil)})
 
-(defn double [x]
+(defn double
+  "decay option: 2^x"
+  [x]
   (* 2 x))
 
-(defn exponential [x]
+(defn exponential
+  "decay option: e^x"
+  [x]
   (* Math/E x))
 
-(defn golden-ratio [x]
+(defn golden-ratio
+  "decay option: φ^x"
+  [x]
   (* 1.6180339887 x))
 
 (defn catch
