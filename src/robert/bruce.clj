@@ -47,37 +47,37 @@
       catch
       [catch])))
 
+(defn resolve-keyword
+  "resolves k as a function named in this namespace"
+  [k]
+  (when-let [f (->> k name symbol (ns-resolve 'robert.bruce))]
+    @f))
+
 (defn resolve-decay
-  "internal function that returns a function that implements the
-  selected decay strategy, said function will take a number as an
-  operand and return a number as a result"
-  [options]
-  (let [d (:decay options)
-        f (cond (nil? d) identity
-                (fn? d) d
-                (number? d) #(* d %)
-                (keyword? d)
-                (when-let [f (->> d name symbol (ns-resolve 'robert.bruce))]
-                  @f))]
-    (if f
-      (assoc options :decay f)
-      (throw (IllegalArgumentException.
-              (str "Unrecognized :decay option: " d))))))
+  "internal function that resolves the value of :decay in options to a
+  decay strategy: a function that accepts a current time delay
+  milliseconds in and returns a new time delay milliseconds"
+  [{d :decay :as options}]
+  (if-let [d (cond (nil? d) identity
+                   (fn? d) d
+                   (number? d) #(* d %)
+                   (keyword? d) (resolve-keyword d))]
+    (assoc options :decay d)
+    (throw (IllegalArgumentException.
+            (str "Unrecognized :decay option " d)))))
 
 (defn resolve-return
-  "internal function that returns a function that implements the
-  selected return? criterion"
-  [options]
-  (let [r (:return? options)
-        f (cond (nil? r) always
-                (fn? r) r
-                (keyword? r)
-                (when-let [f (->> r name symbol (ns-resolve 'robert.bruce))]
-                  @f))]
-    (if f
-      (assoc options :return? f)
-      (throw (IllegalArgumentException.
-              (str "Unrecognized :return? option: " r))))))
+  "internal function that resolves the value of :return? in options to
+  a return? filter: a function that accepts a candidate return value
+  and returns truthy to approve it being returned or falsey to request
+  a retry."
+  [{r :return? :as options}]
+  (if-let [r (cond (nil? r) always
+                   (fn? r) r
+                   (keyword? r) (resolve-keyword r))]
+    (assoc options :return? r)
+    (throw (IllegalArgumentException.
+            (str "Unrecognized :return? option " r)))))
 
 (defn init-options
   [options]
