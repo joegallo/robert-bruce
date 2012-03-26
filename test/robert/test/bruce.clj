@@ -151,6 +151,17 @@
                                            nil
                                            [1 2 3])))))
       (is (= 3 @times))))
+  (testing "bad :decay"
+    (let [times (atom 0)]
+      (is (thrown? IllegalArgumentException
+                   (try-try-again {:sleep nil
+                                   :decay 'bogus
+                                   :tries 10}
+                                  #(do (swap! times inc)
+                                       (if (< @times 3)
+                                         nil
+                                         [1 2 3])))))
+      (is (= 0 @times))))
   (testing "bad :return?"
     (let [times (atom 0)]
       (is (thrown? IllegalArgumentException
