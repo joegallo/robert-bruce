@@ -15,17 +15,17 @@
                       :error-hook (constantly nil)})
 
 (defn double
-  "decay option: 2^x"
+  "decay option: 2^n"
   [x]
   (* 2 x))
 
 (defn exponential
-  "decay option: e^x"
+  "decay option: e^n"
   [x]
   (* Math/E x))
 
 (defn golden-ratio
-  "decay option: φ^x"
+  "decay option: φ^n"
   [x]
   (* 1.6180339887 x))
 
