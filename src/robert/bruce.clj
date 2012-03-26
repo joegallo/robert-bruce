@@ -68,16 +68,16 @@
   "internal function that returns a function that implements the
   selected return? criterion"
   [options]
-  (let [d (:return? options)
-        f (cond (nil? d) always
-                (fn? d) d
-                (keyword? d)
-                (when-let [f (->> d name symbol (ns-resolve 'robert.bruce))]
+  (let [r (:return? options)
+        f (cond (nil? r) always
+                (fn? r) r
+                (keyword? r)
+                (when-let [f (->> r name symbol (ns-resolve 'robert.bruce))]
                   @f))]
     (if f
       (assoc options :return? f)
       (throw (IllegalArgumentException.
-              (str "Unrecognized :return? option: " d))))))
+              (str "Unrecognized :return? option: " r))))))
 
 (defn init-options
   [options]
