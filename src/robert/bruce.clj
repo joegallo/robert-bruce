@@ -101,9 +101,10 @@
 
 (defn try-again?
   "internal function that determines whether we try again"
-  [options t]
+  [options error]
   (let [tries (:tries options)]
-    (and (some #(isa? (type t) %) (catch options))
+    (and (or (not (instance? Throwable error))
+             (some #(isa? (type error) %) (catch options)))
          (or (= :unlimited (keyword tries))
              (pos? tries)))))
 
@@ -135,29 +136,35 @@
             *first-try* (= 1 (:try options))
             *last-try* (= 1 (:tries options))
             *error* (::error options)]
-    (try
-      (let [ret (f)]
-        (if (instance? IObj ret)
-          (vary-meta ret assoc :tries *try*)
-          ret))
-      (catch Throwable t
-        (let [options (-> options
+    (let [{:keys [returned thrown]}
+          (try
+            {:returned (f)}
+            (catch Throwable t
+              {:thrown t}))]
+      (if (and (not thrown) ((:return? options) returned))
+        (if (instance? IObj returned)
+          (vary-meta returned assoc :tries *try*)
+          returned)
+        (let [error (or thrown returned)
+              options (-> options
                           update-tries
-                          (assoc ::error t))
-              continue ((:error-hook options) t)]
+                          (assoc ::error error))
+              continue ((:error-hook options) error)]
           (if (or (true? continue)
                   (and (not (false? continue))
-                       (try-again? options t)))
+                       (try-again? options error)))
             (do
               (when-let [sleep (:sleep options)]
                 (Thread/sleep (long sleep)))
               #(retry (update-sleep options) f))
-            (throw t)))))))
-
+            (if thrown
+              (throw thrown)
+              returned)))))))
 
 (defn try-try-again
   "if at first you don't succeed, intelligent retry trampolining"
   {:arglists '([fn] [fn & args] [options fn] [options fn & args])}
   [& args]
-  (let [[options fn args] (parse args)]
+  (let [[options fn args] (parse args)
+        options (init-options options)]
     (trampoline retry options #(apply fn args))))
