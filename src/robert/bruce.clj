@@ -85,19 +85,13 @@
 
 (defn parse
   "internal function that parses arguments into usable bits"
-  [args]
-  (let [argc (count args)
-        fn (first (filter fn? args))
-        options (if (and (> argc 1)
-                         (map? (first args)))
-                  (first args)
-                  {})
-        options (merge default-options
-                       (select-keys (meta fn)
-                                    (keys default-options))
-                       options)
-        args (rest (drop-while (complement fn?) args))]
-    [options fn args]))
+  [[first-arg & rest-args :as args]]
+  (let [[arg-options [f & args]] (if (map? first-arg)
+                                   [first-arg rest-args]
+                                   [nil args])
+        meta-options (select-keys (meta f) (keys default-options))
+        options (merge default-options meta-options arg-options)]
+    [options f args]))
 
 (defn try-again?
   "internal function that determines whether we try again"
@@ -164,7 +158,7 @@
 (defn try-try-again
   "if at first you don't succeed, intelligent retry trampolining"
   {:arglists '([fn] [fn & args] [options fn] [options fn & args])}
-  [& args]
-  (let [[options fn args] (parse args)
+  [arg & args]
+  (let [[options fn args] (parse (cons arg args))
         options (init-options options)]
     (trampoline retry options #(apply fn args))))
