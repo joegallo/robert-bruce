@@ -49,9 +49,9 @@
       [catch])))
 
 (defn decay
-  "internal function that returns of a function that implements the selected
-decay strategy, said function will take a number as an operand and return a
-number as a result"
+  "internal function that returns a function that implements the
+  selected decay strategy, said function will take a number as an
+  operand and return a number as a result"
   [options]
   (let [d (:decay options)]
     (cond (nil? d) identity
