@@ -88,17 +88,17 @@
     (is (= nil (:sleep (update-sleep {:sleep nil :decay identity}))))))
 
 (deftest test-retry
-  (testing "success returns a result"
-    (is (= 2 (retry default-options #(+ 1 1)))))
-  (testing "failure returns a fn"
-    (is (fn? (retry (assoc default-options :try 1 :sleep nil) #(/ 1 0)))))
-  (testing "unless you have run out of tries"
-    (is (thrown? ArithmeticException
-                 (retry (assoc default-options
-                          :try 1
-                          :sleep nil
-                          :tries 1)
-                        #(/ 1 0))))))
+  (let [options (init-options default-options)]
+    (testing "success returns a result"
+      (is (= 2 (retry options #(+ 1 1)))))
+    (testing "failure returns a fn"
+      (is (fn? (retry (assoc options :sleep nil) #(/ 1 0)))))
+    (testing "unless you have run out of tries"
+      (is (thrown? ArithmeticException
+                   (retry (assoc options
+                            :sleep nil
+                            :tries 1)
+                          #(/ 1 0)))))))
 
 (deftest test-try-try-again-exception
   (testing "ten tries to do the job"
