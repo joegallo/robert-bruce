@@ -20,14 +20,15 @@
     (is (= [Exception IOException] (catch {:catch [Exception IOException]})))))
 
 (deftest test-decay
-  (testing "decay allows nothing, a number, a function, or keywords"
-    (is (= 1 ((decay {}) 1)))
-    (is (= 1 ((decay {:decay 1}) 1)))
-    (is (= 2 ((decay {:decay 2}) 1)))
-    (is (= 2 ((decay {:decay double}) 1)))
-    (is (= 2 ((decay {:decay :double}) 1)))
-    (is (= Math/E ((decay {:decay :exponential}) 1)))
-    (is (= 1.6180339887 ((decay {:decay :golden-ratio}) 1)))))
+  (testing "decay allows nothing, a number, a function, or a keyword"
+    (is (= 1 ((:decay (resolve-decay {})) 1)))
+    (is (= 1 ((:decay (resolve-decay {:decay 1})) 1)))
+    (is (= 2 ((:decay (resolve-decay {:decay 2})) 1)))
+    (is (= 2 ((:decay (resolve-decay {:decay double})) 1)))
+    (is (= 2 ((:decay (resolve-decay {:decay :double})) 1)))
+    (is (= Math/E ((:decay (resolve-decay {:decay :exponential})) 1)))
+    (is (= 1.6180339887 ((:decay (resolve-decay {:decay :golden-ratio})) 1)))))
+
 
 (deftest test-parse
   (testing "parse handles a variety of arguments correctly"
@@ -73,7 +74,7 @@
 
 (deftest test-update-sleep
   (testing "sleep should update with the decay function..."
-    (is (= 2 (:sleep (update-sleep {:sleep 1 :decay 2}))))
+    (is (= 2 (:sleep (update-sleep (resolve-decay {:sleep 1 :decay 2})))))
     (is (= 2 (:sleep (update-sleep {:sleep 2 :decay identity})))))
   (testing "unless it is false or nil"
     (is (= false (:sleep (update-sleep {:sleep false :decay 2}))))
