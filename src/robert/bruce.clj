@@ -3,7 +3,7 @@
   (:import (clojure.lang IObj)))
 
 (defn always
-  "default :return? predicate: any return value indicates success"
+  ":return? option (default): any return value indicates success"
   [x]
   true)
 
