@@ -48,16 +48,37 @@
       catch
       [catch])))
 
-(defn decay
+(defn resolve-decay
   "internal function that returns a function that implements the
   selected decay strategy, said function will take a number as an
   operand and return a number as a result"
   [options]
-  (let [d (:decay options)]
-    (cond (nil? d) identity
-          (fn? d) d
-          (number? d) #(* d %)
-          (keyword? d) @(ns-resolve 'robert.bruce (symbol (name d))))))
+  (let [d (:decay options)
+        f (cond (nil? d) identity
+                (fn? d) d
+                (number? d) #(* d %)
+                (keyword? d)
+                (when-let [f (->> d name symbol (ns-resolve 'robert.bruce))]
+                  @f))]
+    (if f
+      (assoc options :decay f)
+      (throw (IllegalArgumentException.
+              (str "Unrecognized :decay option: " d))))))
+
+(defn resolve-return
+  "internal function that returns a function that implements the
+  selected return? criterion"
+  [options]
+  (let [d (:return? options)
+        f (cond (nil? d) always
+                (fn? d) d
+                (keyword? d)
+                (when-let [f (->> d name symbol (ns-resolve 'robert.bruce))]
+                  @f))]
+    (if f
+      (assoc options :return? f)
+      (throw (IllegalArgumentException.
+              (str "Unrecognized :return? option: " d))))))
 
 (defn parse
   "internal function that parses arguments into usable bits"
