@@ -120,7 +120,7 @@
   "internal function that updates sleep with the decay function"
   [options]
   (update-in options [:sleep] (if (:sleep options)
-                                (decay options)
+                                (:decay options)
                                 identity)))
 
 (def ^{:dynamic true} *first-try* nil)
