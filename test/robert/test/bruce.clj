@@ -29,6 +29,13 @@
     (is (= Math/E ((:decay (resolve-decay {:decay :exponential})) 1)))
     (is (= 1.6180339887 ((:decay (resolve-decay {:decay :golden-ratio})) 1)))))
 
+(deftest test-return?
+  (testing "return? allows nothing, a function, or a keyword"
+    (is (= always ((resolve-return {}) :return?)))
+    (is (= always ((resolve-return {:return? :always}) :return?)))
+    (is (= truthy? ((resolve-return {:return? :truthy?}) :return?)))
+    (is (= falsey? ((resolve-return {:return? :falsey?}) :return?)))
+    (is (= true? ((resolve-return {:return? true?}) :return?)))))
 
 (deftest test-parse
   (testing "parse handles a variety of arguments correctly"
