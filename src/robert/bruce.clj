@@ -2,15 +2,10 @@
   (:refer-clojure :exclude [double])
   (:import (clojure.lang IObj)))
 
-(defn always
-  ":return? option (default): any return value indicates success"
-  [x]
-  true)
-
 (def default-options {:sleep 10000
                       :tries 5
                       :decay identity
-                      :return? always
+                      :return? :always
                       :catch Exception
                       :error-hook (constantly nil)})
 
@@ -29,6 +24,11 @@
   [x]
   (* 1.6180339887 x))
 
+(defn always
+  ":return? option (default): any return value indicates success"
+  [x]
+  true)
+
 (defn truthy?
   ":return? option: only truthy return values indicate success"
   [x]
@@ -37,7 +37,7 @@
 (defn falsey?
   ":return? option: only falsey return values indicate success"
   [x]
-  (not (truthy? x)))
+  (not x))
 
 (defn catch
   "internal function that returns a collection of exceptions to catch"
