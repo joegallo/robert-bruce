@@ -85,10 +85,10 @@
 
 (defn parse
   "internal function that parses arguments into usable bits"
-  [[first-arg & rest-args :as args]]
-  (let [[arg-options [f & args]] (if (map? first-arg)
-                                   [first-arg rest-args]
-                                   [nil args])
+  [arg & args]
+  (let [[arg-options [f & args]] (if (map? arg)
+                                   [arg args]
+                                   [nil (cons arg args)])
         meta-options (select-keys (meta f) (keys default-options))
         options (merge default-options meta-options arg-options)]
     [options f args]))
@@ -159,6 +159,6 @@
   "if at first you don't succeed, intelligent retry trampolining"
   {:arglists '([fn] [fn & args] [options fn] [options fn & args])}
   [arg & args]
-  (let [[options fn args] (parse (cons arg args))
+  (let [[options fn args] (apply parse arg args)
         options (init-options options)]
     (trampoline retry options #(apply fn args))))

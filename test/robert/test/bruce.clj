@@ -40,26 +40,26 @@
 (deftest test-parse
   (testing "parse handles a variety of arguments correctly"
     (is (= [default-options identity nil]
-           (parse [identity])))
+           (parse identity)))
     (is (= [default-options identity ["a" "b"]]
-           (parse [identity "a" "b"])))
+           (parse identity "a" "b")))
     (is (= [(assoc default-options :tries 100) identity nil]
-           (parse [{:tries 100} identity])))
+           (parse {:tries 100} identity)))
     (is (= [(assoc default-options :tries 100) identity ["a" "b"]]
-           (parse [{:tries 100} identity "a" "b"]))))
+           (parse {:tries 100} identity "a" "b"))))
   (testing "parse merges your options with the default options"
     (let [options {:a 1 :b 2 :sleep nil :tries 10}]
       (is (= [(merge default-options options) identity nil]
-             (parse [options identity])))))
+             (parse options identity)))))
   (testing "and with the metadata on the function you pass in"
     (let [options {:a 1 :b 2 :sleep nil :tries 10}]
       (is (= (merge default-options {:decay :foo} options)
-             (first (parse [options ^{:decay :foo} #()]))))))
+             (first (parse options ^{:decay :foo} #()))))))
   (testing "priority is options, then meta, then defaults"
-    (is (= 5 (:tries (first (parse [#()])))))
-    (is (= 2 (:tries (first (parse [^{:tries 2} #()])))))
-    (is (= 1 (:tries (first (parse [{:tries 1} #()])))))
-    (is (= 1 (:tries (first (parse [{:tries 1} ^{:tries 2} #()])))))))
+    (is (= 5 (:tries (first (parse #())))))
+    (is (= 2 (:tries (first (parse ^{:tries 2} #())))))
+    (is (= 1 (:tries (first (parse {:tries 1} #())))))
+    (is (= 1 (:tries (first (parse {:tries 1} ^{:tries 2} #())))))))
 
 (deftest test-try-again?
   (testing "first, the exception must be acceptable"
