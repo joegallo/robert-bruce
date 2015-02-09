@@ -41,10 +41,19 @@ Add this to your project.clj :dependencies list:
                 ;; if you want your sleep amount to change over
                 ;; time, you can provide a decay function:
                 ;; a number - your sleep will be multiplied by it
-                ;; a function - your sleep will passed into it
+                ;; a function - the previous sleep value will passed
+                ;;              into it, and you should return a new
+                ;;              sleep. (that is, we'll do the state
+                ;;              tracking internally for you.)
                 ;; a keyword - for out of the box decay algorithms
                 ;;             :exponential, :double, :golden-ratio
                 ;; default is identity
+
+                ;; note: all these options are just for updating the
+                ;; internal 'how long should i sleep?' state, the
+                ;; actual sleeping is done elsewhere. see
+                ;; `update-sleep` versus `retry` for more.
+
                 :decay :exponential
 
                 ;; if you want to only retry when particular
