@@ -106,7 +106,8 @@
                        (try-again? options t)))
             (do
               (when-let [sleep (:sleep options)]
-                (Thread/sleep (long sleep)))
+                (when (pos? sleep)
+                  (Thread/sleep (long sleep))))
               #(retry (update-sleep options) f))
             (throw t)))))))
 
