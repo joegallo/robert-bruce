@@ -80,9 +80,6 @@ Add this to your project.clj :dependencies list:
 ;; *last-try* - true if this is the last try
 ;; *try* - the current try number (starting at 1)
 ;; *error* - the last error that occurred
-
-;; you can also use metadata on the function itself
-(try-try-again ^{:decay :exponential :tries 100} #(some-fn arg1 arg2))
 ```
 
 ## License
