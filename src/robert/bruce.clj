@@ -50,7 +50,10 @@
                        (select-keys (meta fn)
                                     (keys default-options))
                        options)
-        options (assoc options :try 1)
+        options (assoc options :try 1) ;; try is not overrideable
+        ;; drop the first argument, if it's a map (that is, not a fn),
+        ;; and then the rest'll drop the actual fn argument, so you'll
+        ;; just be left with the args that are really args
         args (rest (drop-while (complement fn?) args))]
     [options fn args]))
 
