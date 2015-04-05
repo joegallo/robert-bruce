@@ -87,8 +87,8 @@
   (testing "unless you have run out of tries"
     (is (thrown? ArithmeticException
                  (retry (assoc default-options
-                          :sleep nil
-                          :tries 1)
+                               :sleep nil
+                               :tries 1)
                         #(/ 1 0))))))
 
 (deftest test-try-try-again
@@ -118,8 +118,8 @@
   (testing "record the number of tries in the metadata"
     (is (= 1 (:tries (meta (try-try-again (fn [] [1]))))))
     (is (= 2 (:tries (meta (try-try-again (fn [] (if *first-try*
-                                                  (throw (Exception.))
-                                                  [1]))))))))
+                                                   (throw (Exception.))
+                                                   [1]))))))))
   (testing "preserving any supplied metadata"
     (is (= {:tries 2 :foo :bar} (meta (try-try-again (fn []
                                                        (if *first-try*

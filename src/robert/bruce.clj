@@ -6,7 +6,7 @@
                       :tries 5
                       :decay identity
                       :catch Exception
-                      :try 1  ;; try is not overrideable
+                      :try 1 ;; try is not overrideable
                       :error-hook (constantly nil)})
 
 (defn double [x]
@@ -110,7 +110,6 @@
                   (Thread/sleep (long sleep))))
               #(retry (update-sleep options) f))
             (throw t)))))))
-
 
 (defn try-try-again
   "if at first you don't succeed, intelligent retry trampolining"
