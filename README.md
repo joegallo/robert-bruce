@@ -97,7 +97,7 @@ Add this to your project.clj :dependencies list:
 ;; - throw the last exception caught if the last try generated an
 ;;   exception, or
 ;; - return the last return value that the :return? predicate
-;;   classified as indicating falure.
+;;   classified as indicating failure.
 
 ;; In addition, four dynamic variables are bound in both the
 ;; passed in and error-hook functions:
