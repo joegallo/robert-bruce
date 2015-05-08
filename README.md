@@ -80,17 +80,6 @@ Add this to your project.clj :dependencies list:
                 ;; default is Exception
                 :catch [java.io.IOException java.sql.SQLException]
 
-                ;; if you would like a function to be called on each
-                ;; failure (for instance, logging each failed
-                ;; attempt), you can specify an error-hook. The error
-                ;; that occurred (an exception or a return value that
-                ;; the :return? predicate classified as indicating
-                ;; failure) is passed into the error-hook function as
-                ;; an argument. The error-hook function can also force
-                ;; a short-circuit failure by returning false, or
-                ;; force an additional retry by returning true.
-
-                :error-hook (fn [e] (println "I got an error:" e))}
                #(some-fn arg1 arg2))
 
 ;; When retries are exhausted, try-try-again will either:
