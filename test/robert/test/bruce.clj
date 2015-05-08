@@ -15,9 +15,10 @@
 
 (deftest test-catch
   (testing "catch allows a single exception or a collection"
-    (is (= [Exception] (catch {:catch Exception})))
-    (is (= [Exception] (catch {:catch [Exception]})))
-    (is (= [Exception IOException] (catch {:catch [Exception IOException]})))))
+    (is (= [Exception] (resolve-catch {:catch Exception})))
+    (is (= [Exception] (resolve-catch {:catch [Exception]})))
+    (is (= [Exception IOException] (resolve-catch {:catch [Exception
+                                                           IOException]})))))
 
 (deftest test-decay
   (testing "decay allows nothing, a number, a function, or a keyword"

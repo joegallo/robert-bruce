@@ -39,8 +39,9 @@
   [x]
   (not x))
 
-(defn catch
-  "internal function that returns a collection of exceptions to catch"
+(defn resolve-catch
+  "internal function that resolves the value of the :catch in options
+  to a collection of exceptions to catch"
   [options]
   (let [catch (:catch options)]
     (if (coll? catch)
@@ -98,7 +99,7 @@
   [options error]
   (let [tries (:tries options)]
     (and (or (not (instance? Throwable error))
-             (some #(isa? (type error) %) (catch options)))
+             (some #(instance? % error) (resolve-catch options)))
          (or (= :unlimited (keyword tries))
              (pos? tries)))))
 
