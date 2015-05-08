@@ -1,7 +1,7 @@
 # Robert Bruce
 
-Robert Bruce provides an easy way to execute a function and allow 
-failures to be automatically retried.  It's named after 
+Robert Bruce provides an easy way to execute a function and allow
+failures to be automatically retried.  It's named after
 [Robert the Bruce](http://en.wikipedia.org/wiki/Robert_the_Bruce),
 whose determination was inspired by the sight of a spider trying (and
 failing) many times to build a web.
@@ -33,7 +33,7 @@ Add this to your project.clj :dependencies list:
 
                 ;; :sleep is used to specify how long to sleep
                 ;; between retries, it can be a number, or false
-                ;; or nil if you don't want to sleep, 
+                ;; or nil if you don't want to sleep,
                 ;; default is 10 seconds (that is, 10000)
                 :sleep 100
 
@@ -41,7 +41,7 @@ Add this to your project.clj :dependencies list:
                 ;; will be attempted, it can also be :unlimited
                 ;; default is 5
                 :tries 100
-                
+
                 ;; if you want your sleep amount to change over
                 ;; time, you can provide a decay function:
                 ;; a number - your sleep will be multiplied by it, or
@@ -76,10 +76,10 @@ Add this to your project.clj :dependencies list:
                 ;; if you want to only retry when particular
                 ;; exceptions are thrown, you can add a :catch
                 ;; clause.  it works with either a single type
-                ;; or a collection.  
+                ;; or a collection.
                 ;; default is Exception
                 :catch [java.io.IOException java.sql.SQLException]
-                
+
                 ;; if you would like a function to be called on each
                 ;; failure (for instance, logging each failed
                 ;; attempt), you can specify an error-hook. The error
