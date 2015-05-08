@@ -20,38 +20,46 @@
     (is (= [Exception IOException] (catch {:catch [Exception IOException]})))))
 
 (deftest test-decay
-  (testing "decay allows nothing, a number, a function, or keywords"
-    (is (= 1 ((decay {}) 1)))
-    (is (= 1 ((decay {:decay 1}) 1)))
-    (is (= 2 ((decay {:decay 2}) 1)))
-    (is (= 2 ((decay {:decay double}) 1)))
-    (is (= 2 ((decay {:decay :double}) 1)))
-    (is (= Math/E ((decay {:decay :exponential}) 1)))
-    (is (= 1.6180339887 ((decay {:decay :golden-ratio}) 1)))))
+  (testing "decay allows nothing, a number, a function, or a keyword"
+    (is (= 1 ((:decay (resolve-decay {})) 1)))
+    (is (= 1 ((:decay (resolve-decay {:decay 1})) 1)))
+    (is (= 2 ((:decay (resolve-decay {:decay 2})) 1)))
+    (is (= 2 ((:decay (resolve-decay {:decay double})) 1)))
+    (is (= 2 ((:decay (resolve-decay {:decay :double})) 1)))
+    (is (= Math/E ((:decay (resolve-decay {:decay :exponential})) 1)))
+    (is (= 1.6180339887 ((:decay (resolve-decay {:decay :golden-ratio})) 1)))))
+
+(deftest test-return?
+  (testing "return? allows nothing, a function, or a keyword"
+    (is (= always ((resolve-return {}) :return?)))
+    (is (= always ((resolve-return {:return? :always}) :return?)))
+    (is (= truthy? ((resolve-return {:return? :truthy?}) :return?)))
+    (is (= falsey? ((resolve-return {:return? :falsey?}) :return?)))
+    (is (= true? ((resolve-return {:return? true?}) :return?)))))
 
 (deftest test-parse
   (testing "parse handles a variety of arguments correctly"
-    (is (= [default-options identity []]
-           (parse [identity])))
+    (is (= [default-options identity nil]
+           (parse identity)))
     (is (= [default-options identity ["a" "b"]]
-           (parse [identity "a" "b"])))
-    (is (= [(assoc default-options :tries 100) identity []]
-           (parse [{:tries 100} identity])))
+           (parse identity "a" "b")))
+    (is (= [(assoc default-options :tries 100) identity nil]
+           (parse {:tries 100} identity)))
     (is (= [(assoc default-options :tries 100) identity ["a" "b"]]
-           (parse [{:tries 100} identity "a" "b"]))))
+           (parse {:tries 100} identity "a" "b"))))
   (testing "parse merges your options with the default options"
     (let [options {:a 1 :b 2 :sleep nil :tries 10}]
-      (is (= [(merge default-options options) identity []]
-             (parse [options identity])))))
+      (is (= [(merge default-options options) identity nil]
+             (parse options identity)))))
   (testing "and with the metadata on the function you pass in"
     (let [options {:a 1 :b 2 :sleep nil :tries 10}]
       (is (= (merge default-options {:decay :foo} options)
-             (first (parse [options ^{:decay :foo} #()]))))))
+             (first (parse options ^{:decay :foo} #()))))))
   (testing "priority is options, then meta, then defaults"
-    (is (= 5 (:tries (first (parse [#()])))))
-    (is (= 2 (:tries (first (parse [^{:tries 2} #()])))))
-    (is (= 1 (:tries (first (parse [{:tries 1} #()])))))
-    (is (= 1 (:tries (first (parse [{:tries 1} ^{:tries 2} #()])))))))
+    (is (= 5 (:tries (first (parse #())))))
+    (is (= 2 (:tries (first (parse ^{:tries 2} #())))))
+    (is (= 1 (:tries (first (parse {:tries 1} #())))))
+    (is (= 1 (:tries (first (parse {:tries 1} ^{:tries 2} #())))))))
 
 (deftest test-try-again?
   (testing "first, the exception must be acceptable"
@@ -73,25 +81,32 @@
 
 (deftest test-update-sleep
   (testing "sleep should update with the decay function..."
-    (is (= 2 (:sleep (update-sleep {:sleep 1 :decay 2}))))
+    (is (= 2 (:sleep (update-sleep (resolve-decay {:sleep 1 :decay 2})))))
     (is (= 2 (:sleep (update-sleep {:sleep 2 :decay identity})))))
   (testing "unless it is false or nil"
     (is (= false (:sleep (update-sleep {:sleep false :decay 2}))))
     (is (= nil (:sleep (update-sleep {:sleep nil :decay identity}))))))
 
 (deftest test-retry
-  (testing "success returns a result"
-    (is (= 2 (retry default-options #(+ 1 1)))))
-  (testing "failure returns a fn"
-    (is (fn? (retry (assoc default-options :sleep nil) #(/ 1 0)))))
-  (testing "unless you have run out of tries"
-    (is (thrown? ArithmeticException
-                 (retry (assoc default-options
-                               :sleep nil
-                               :tries 1)
-                        #(/ 1 0))))))
+  (let [options (init-options default-options)]
+    (testing "success returns a result"
+      (is (= 2 (retry options #(+ 1 1)))))
+    (testing "failure returns a fn"
+      (is (fn? (retry (assoc options :sleep nil) #(/ 1 0)))))
+    (testing "unless you have run out of tries and fail with an exception"
+      (is (thrown? ArithmeticException
+                   (retry (assoc options
+                            :sleep nil
+                            :tries 1)
+                          #(/ 1 0)))))
+    (testing "unless you have run out of tries and fail by not returning"
+      (is (= 5 (retry (assoc options
+                        :return? nil?
+                        :sleep nil
+                        :tries 1)
+                      (constantly 5)))))))
 
-(deftest test-try-try-again
+(deftest test-try-try-again-exception
   (testing "ten tries to do the job"
     (let [times (atom 0)]
       (is (thrown? ArithmeticException
@@ -100,6 +115,64 @@
                                   #(do (swap! times inc)
                                        (/ 1 0)))))
       (is (= 10 @times)))))
+
+(deftest test-try-try-again-return?
+  (testing "ten tries to do the job, nil, identity"
+    (let [times (atom 0)]
+      (is (= nil (try-try-again {:sleep nil
+                                 :tries 10
+                                 :return? identity}
+                                #(do (swap! times inc)
+                                     nil))))
+      (is (= 10 @times))))
+  (testing "ten tries to do the job, nil, truthy?"
+    (let [times (atom 0)]
+      (is (= nil (try-try-again {:sleep nil
+                                 :tries 10
+                                 :return? :truthy?}
+                                #(do (swap! times inc)
+                                     nil))))
+      (is (= 10 @times))))
+  (testing "ten tries to do the job, nil, falsey?"
+    (let [times (atom 0)]
+      (is (= nil (try-try-again {:sleep nil
+                                 :tries 10
+                                 :return? :falsey?}
+                                #(do (swap! times inc)
+                                     nil))))
+      (is (= 1 @times))))
+  (testing "ten tries to do the job, [], vector?"
+    (let [times (atom 0)]
+      (is (= [1 2 3] (try-try-again {:sleep nil
+                                     :tries 10
+                                     :return? vector?}
+                                    #(do (swap! times inc)
+                                         (if (< @times 3)
+                                           nil
+                                           [1 2 3])))))
+      (is (= 3 @times))))
+  (testing "bad :decay"
+    (let [times (atom 0)]
+      (is (thrown? IllegalArgumentException
+                   (try-try-again {:sleep nil
+                                   :decay 'bogus
+                                   :tries 10}
+                                  #(do (swap! times inc)
+                                       (if (< @times 3)
+                                         nil
+                                         [1 2 3])))))
+      (is (= 0 @times))))
+  (testing "bad :return?"
+    (let [times (atom 0)]
+      (is (thrown? IllegalArgumentException
+                   (try-try-again {:sleep nil
+                                   :tries 10
+                                   :return? 3}
+                                  #(do (swap! times inc)
+                                       (if (< @times 3)
+                                         nil
+                                         [1 2 3])))))
+      (is (= 0 @times)))))
 
 (deftest test-try-first-try-and-last-try
   (testing "that we keep tally of tries nicely"

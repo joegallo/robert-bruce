@@ -22,8 +22,12 @@ Add this to your project.clj :dependencies list:
 
 ;; but with the addition of a first options arg, if you don't
 (try-try-again {:sleep 5000 :tries 100} #(some-fn arg1 arg2))
-(try-try-again {:sleep nil :tries 100} #(some-fn arg1 arg2))
+(try-try-again {:sleep nil :tries 100} some-fn arg1 arg2)
 (try-try-again {:decay :exponential :tries 100} #(some-fn arg1 arg2))
+
+;; by default, a failure is detected when the function throws an
+;; exception. options can refine that criterion based on the type of
+;; exception thrown or by classifying some return values as failures.
 
 (try-try-again {;; all options are optional
 
@@ -40,11 +44,11 @@ Add this to your project.clj :dependencies list:
                 
                 ;; if you want your sleep amount to change over
                 ;; time, you can provide a decay function:
-                ;; a number - your sleep will be multiplied by it
+                ;; a number - your sleep will be multiplied by it, or
                 ;; a function - the previous sleep value will passed
                 ;;              into it, and you should return a new
                 ;;              sleep. (that is, we'll do the state
-                ;;              tracking internally for you.)
+                ;;              tracking internally for you.), or
                 ;; a keyword - for out of the box decay algorithms
                 ;;             :exponential, :double, :golden-ratio
                 ;; default is identity
@@ -56,6 +60,19 @@ Add this to your project.clj :dependencies list:
 
                 :decay :exponential
 
+                ;; if the function signals failure by its return value
+                ;; rather than (or in addition to) throwing
+                ;; exceptions, you can provide a return? predicate to
+                ;; detect failures. The predicate will be given a
+                ;; candidate return value and should return truthy if
+                ;; the value should be returned or falsey to request a
+                ;; retry. The :return? option value should be either:
+                ;; a function of one argument, or
+                ;; a keyword - for out of the box predicates:
+                ;;             :always, :truthy?, :falsey?
+                ;; default is :always
+                :return? :truthy?
+
                 ;; if you want to only retry when particular
                 ;; exceptions are thrown, you can add a :catch
                 ;; clause.  it works with either a single type
@@ -63,16 +80,24 @@ Add this to your project.clj :dependencies list:
                 ;; default is Exception
                 :catch [java.io.IOException java.sql.SQLException]
                 
-                ;; if you would like a function to be called on
-                ;; each failure (for instance, logging each failed
-                ;; attempt), you can specify an error-hook.
-                ;; The error that occurred is passed into the
-                ;; error-hook function as an argument.
-                ;; The error-hook method can also force a
-                ;; short-circuit failure by returning false, or
+                ;; if you would like a function to be called on each
+                ;; failure (for instance, logging each failed
+                ;; attempt), you can specify an error-hook. The error
+                ;; that occurred (an exception or a return value that
+                ;; the :return? predicate classified as indicating
+                ;; failure) is passed into the error-hook function as
+                ;; an argument. The error-hook function can also force
+                ;; a short-circuit failure by returning false, or
                 ;; force an additional retry by returning true.
+
                 :error-hook (fn [e] (println "I got an error:" e))}
                #(some-fn arg1 arg2))
+
+;; When retries are exhausted, try-try-again will either:
+;; - throw the last exception caught if the last try generated an
+;;   exception, or
+;; - return the last return value that the :return? predicate
+;;   classified as indicating falure.
 
 ;; In addition, four dynamic variables are bound in both the
 ;; passed in and error-hook functions:
