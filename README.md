@@ -89,6 +89,20 @@ should be either:
 The default is `:always` -- that is, return values aren't considered,
 only thrown exceptions are.
 
+#### Deciding when to retry
+
+While retrying automatically is often sufficient, `:error-hook` is
+provided for the case where you want to decide when to retry based on
+the return value, exception caught, or other external factors.
+
+`:error-hook` takes the form of a function that accepts the caught
+exception or return value (when using `:return?`) as its single
+argument.  It is called after each failure and can force a retry by
+returning `true` or can cancel retries by returning `false`.
+
+Note: `true` or `false` are checked explicitly.  All other values will
+result in retries continuing as normal.
+
 ### Bound variables
 
 Four dynamic variables are bound inside the scope of the try-try-again
