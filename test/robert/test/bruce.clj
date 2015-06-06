@@ -231,6 +231,14 @@
                                    :error-hook #(reset! e2 %)}
                                   #(throw e1))))
       (is (= e1 @e2))))
+  (testing "receives the return value when :return?"
+    (let [val (atom :not-nil)]
+      (is (nil? (try-try-again {:sleep nil
+                                :tries 1
+                                :return? :truthy?
+                                :error-hook #(reset! val %)}
+                               #(do nil))))
+      (is (= nil @val))))
   (testing "can cancel retries by returning false"
     (let [tries (atom [])]
       (is (thrown? Exception
