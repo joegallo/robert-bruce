@@ -1,4 +1,4 @@
-(defproject robert/bruce "0.8.0-SNAPSHOT"
+(defproject robert/bruce "0.8.0"
   :description "trampolining retries for clojure"
   :url "https://github.com/joegallo/robert-bruce"
   :license {:name "Eclipse Public License"
