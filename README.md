@@ -8,7 +8,7 @@ failing) many times to build a web.
 
 Add this to your project.clj :dependencies list:
 
-    [robert/bruce "0.7.1"]
+    [robert/bruce "0.8.0"]
 
 ## Usage
 
