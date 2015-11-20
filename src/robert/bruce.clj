@@ -136,6 +136,8 @@
           (try
             {:returned (f)}
             (catch Throwable t
+              (when (:log-hook options)
+                ((:log-hook options) t))
               {:thrown t}))]
       (if (and (not thrown) ((:return? options) returned))
         (if (instance? IObj returned)

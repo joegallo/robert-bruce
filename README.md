@@ -103,6 +103,7 @@ returning `true` or can cancel retries by returning `false`.
 Note: `true` or `false` are checked explicitly.  All other values will
 result in retries continuing as normal.
 
+
 ### Bound variables
 
 Four dynamic variables are bound inside the scope of the try-try-again
@@ -112,6 +113,15 @@ Four dynamic variables are bound inside the scope of the try-try-again
 * `*last-try*` - true if this is the last try
 * `*try*` - the current try number (starting at 1)
 * `*error*` - the last error that occurred
+
+
+### Side effects
+Sometimes you want to log any errors or otherwise track them,
+but without throwing the exception, and while still retrying.
+the `:log-hook` will fire after every exception is caught.
+It is called on each failure and takes one argument, the
+exception. Bound variables are available in it.
+
 
 ### Return values
 
